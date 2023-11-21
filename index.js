@@ -2,27 +2,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('reg');
     const tableBody = document.querySelector('#dataTable tbody');
 
-    
+    // Load previously saved entries from localStorage
     const savedEntries = JSON.parse(localStorage.getItem('entries')) || [];
     savedEntries.forEach(entry => appendRow(entry));
 
     form.addEventListener('submit', function (event) {
         event.preventDefault();
 
-        
+        // Get form values
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const dobInput = document.getElementById('dob');
         const acceptedTerms = document.getElementById('accept').checked;
 
-       
+        // Validate email
         if (!isValidEmail(email)) {
             alert('Please enter a valid email address.');
             return;
         }
 
-        
+        // Validate date of birth
         const dob = new Date(dobInput.value);
         const today = new Date();
         const age = today.getFullYear() - dob.getFullYear();
@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        
-       const newEntry={ 
+        // Save the entry to localStorage
+        const newEntry = {
             name,
             email,
             password,
@@ -42,21 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         saveEntryToLocalStorage(newEntry);
 
-        
+        // Insert the row into the table
         appendRow(newEntry);
-        
-        
 
-        
-        appendRow({
-            name,
-            email,
-            password,
-            dob: dobInput.value,
-            acceptedTerms: acceptedTerms ? 'Yes' : 'No',
-        });
-
-        
+        // Clear the form
         form.reset();
     });
 
@@ -75,8 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isValidEmail(email) {
-       
+        // Basic email validation, you might want to use a more robust solution
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
 });
+
+
