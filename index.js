@@ -1,150 +1,82 @@
-let userForm=document.getElementById("myForm")
-let retrieveEntries=()=>{
-    let entries = localStorage.getItem("user-entries"); 
-    
-    if (entries) {
-    
-    entries= JSON.parse(entries);
-    
-    } else {
-    
-    entries = [];}
-    
-    return entries;}
-    let userEntries=retrieveEntries();
-  
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('reg');
+    const tableBody = document.querySelector('#dataTable tbody');
 
-function validateForm() {
-    // Reset error messages
-    document.getElementById("nameError").innerHTML = "";
-    document.getElementById("emailError").innerHTML = "";
-    document.getElementById("passwordError").innerHTML = "";
-    document.getElementById("dobError").innerHTML = "";
-    document.getElementById("acceptTermsError").innerHTML = "";
+    
+    const savedEntries = JSON.parse(localStorage.getItem('entries')) || [];
+    savedEntries.forEach(entry => appendRow(entry));
 
-    // Validate Name
-    let name = document.getElementById("name").value;
-    if (name.length < 3) {
-        document.getElementById("nameError").innerHTML = "Name must be at least 3 characters";
-        return false;
-    }
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
 
-    // Validate Email
-    let email = document.getElementById("email").value;
-    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        document.getElementById("emailError").innerHTML = "Invalid email address";
-        return false;
-    }
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const dobInput = document.getElementById('dob');
+        const acceptedTerms = document.getElementById('accept').checked;
 
-    // Validate Password
-    let password = document.getElementById("password").value;
-    if (password.length < 6) {
-        document.getElementById("passwordError").innerHTML = "Password must be at least 6 characters";
-        return false;
-    }
+       
+        if (!isValidEmail(email)) {
+            alert('Please enter a valid email address.');
+            return;
+        }
 
-    // Validate Date of Birth
-    let dob = document.getElementById("dob").value;
-    let currentDate = new Date().toISOString().split('T')[0];
-    if (!dob) {
-        document.getElementById("dobError").innerHTML = "Please enter your date of birth";
-        return false;
-    } else {
-        let dobDate = new Date(dob);
-        let age = calculateAge(dobDate);
+        
+        const dob = new Date(dobInput.value);
+        const today = new Date();
+        const age = today.getFullYear() - dob.getFullYear();
+
         if (age < 18 || age > 55) {
-            document.getElementById("dobError").innerHTML = "Please enter a valid date of birth between 18 and 55 years";
-            return false;
+            alert('Please enter a valid date of birth between the ages of 18 and 55.');
+            return;
+        }
+
+        
+       const newEntry={ 
+            name,
+            email,
+            password,
+            dob: dobInput.value,
+            acceptedTerms,
+        };
+        saveEntryToLocalStorage(newEntry);
+
+        
+        appendRow(newEntry);
+        
+        
+
+        
+        appendRow({
+            name,
+            email,
+            password,
+            dob: dobInput.value,
+            acceptedTerms: acceptedTerms ? 'Yes' : 'No',
+        });
+
+        
+        form.reset();
+    });
+
+    function appendRow(entry) {
+        const newRow = tableBody.insertRow();
+        for (const key in entry) {
+            const cell = newRow.insertCell();
+            cell.textContent = entry[key];
         }
     }
-    // Validate Acceptance of Terms
-    let acceptTerms = document.getElementById("acceptTerms").checked;
-    if (!acceptTerms) {
-        document.getElementById("acceptTermsError").innerHTML = "You must accept the terms and conditions";
-        return false;
+
+    function saveEntryToLocalStorage(entry) {
+        const savedEntries = JSON.parse(localStorage.getItem('entries')) || [];
+        savedEntries.push(entry);
+        localStorage.setItem('entries', JSON.stringify(savedEntries));
     }
 
-    // If all validations pass, the form will be submitted
-    return true;
-}
-function calculateAge(birthDate) {
-    let currentDate = new Date();
-    let age = currentDate.getFullYear() - birthDate.getFullYear();
-    let monthDiff = currentDate.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
-        age--;
+    function isValidEmail(email) {
+       
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
-    return age;
-}
-
-const displayEntries=()=>{
-    const entries=retrieveEntries();
-    const tableEntries = entries.map((entry) => {
-    
-    const nameCell = `<td class='border px-4 py-2'>${entry.name}</td>` ; 
-    const emailCell = `<td class='border px-4 py-2'>${entry.email}</td> `;
-        
-        const passwordCell= `<td class='border px-4 py-2'>${entry.password}</td>`;
-        
-        const dobCell = `<td class='border px-4 py-2'>${entry.dob}</td>`
-        
-        const acceptTermsCell =`<td class='border px-4 py-2'>${entry.acceptedTermsAndconditions}</td>`
-        
-        const row = `<tr>${nameCell} ${emailCell} ${passwordCell} ${dobCell} ${acceptTermsCell}</tr>`
-        
-        return row;
-        
-        }).join("\n");
-        
-        const table = `<table class="table-auto w-full">
-        <tr>
-        
-        <th class="px-4 py-2">Name</th>
-        
-        <th class="px-4 py-2">Email</th>
-        
-        <th class="px-4 py-2">Password</th>
-        
-        <th class="px-4 py-2">dob</th>
-        
-        <th class="px-4 py-2">accepted terms?</th>
-        
-        </tr>${tableEntries} </table>`;
-        let details=document.getElementById('user-entries');
-        details.innerHTML=table;
-        }
-      
-const saveUserForm =(event)=>{
-
-event.preventDefault();
-const name= document.getElementById("name").value;
-const email =document.getElementById("email").value;
-
-const password= document.getElementById("password").value;
-
-const dob= document.getElementById("dob").value;
-
-const acceptedTermsAndconditions= document.getElementById("acceptTerms").checked;
-
-let dobDate = new Date(dob);
-let age = calculateAge(dobDate);
-if (age >= 18 && age <= 55) {
-    const entry = {
-        name,
-        email,
-        password,
-        dob,
-        acceptedTermsAndconditions
-    };
-
-userEntries.push(entry);
-
-localStorage.setItem("user-entries", JSON.stringify(userEntries));
-displayEntries();
-}
-}
-
-userForm.addEventListener("submit", saveUserForm);
-
-displayEntries();
+});
